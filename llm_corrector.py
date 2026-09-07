@@ -18,25 +18,38 @@ OLLAMA_BASE_URL = "http://127.0.0.1:11434"
 MODEL_GEMMA = "hf.co/unsloth/gemma-4-12b-it-GGUF:Q4_K_M"
 MODEL_QWEN = "qwen2.5:3b"
 
-# Universal speech and medical transcription instructions
-SYSTEM_PROMPT_GEMMA = (
+# Specialized Medical & General transcription instructions
+SYSTEM_PROMPT_MEDICAL = (
+    "Sən Azərbaycanın aparıcı klinikalarında çalışan təcrübəli tibbi redaktor və ekspert həkimsən.\n"
+    "VƏZİFƏN: Həkimin səsli diktəsini səliqəli, rəsmi, akademik və qüsursuz TİBBİ KLİNİK PROTOKOL "
+    "(həkim rəyi, epikriz) dilinə çevirməkdir.\n\n"
+    "CİDDİ TƏLİMATLAR:\n"
+    "1. Təhrif olunmuş, fonetik xətaları və anlaşılmaz ifadələri tibbi məntiqlə bərpa et:\n"
+    "   - 'qastrın / xəstərimiz' -> 'xəstəmizin'\n"
+    "   - 'doğruluqla çəkilib' -> 'dəqiqliklə qiymətləndirilib / yoxlanılıb'\n"
+    "   - 'hala zədəki sonraki mərhələləri' -> 'hazırkı və növbəti mərhələlərdə vəziyyətini'\n"
+    "   - 'baxışları müvafiqdir' -> 'konsultasiyası / baxışı məqsədəuyğundur'\n"
+    "   - 'macarlanı kəni eləmək lazımdır' -> 'müayinə-müalicə planını təyin etmək lazımdır'\n"
+    "   - 'qərar qəbləmən' -> 'yekun qərara gəlmək'\n"
+    "   - 'rentmetoloq' -> 'revmatoloq', 'çək edilib' -> 'yoxlanılıb', 'müəyyənə' -> 'müayinə'\n"
+    "2. Danışıq dili ifadələrini və qeyri-rəsmi sözləri peşəkar həkim protokol üslubuna uyğunlaşdır.\n"
+    "3. YALNIZ düzəldilmiş tibbi mətni çıxar. Heç bir başlıq, giriş və ya əlavə şərh yazma."
+)
+
+SYSTEM_PROMPT_GENERAL = (
     "Sən peşəkar Azərbaycan dili nitq və transkripsiya redaktorusan.\n"
     "VƏZİFƏN: Səs tanıma (Speech-to-Text) zamanı yaranmış fonetik təhrifləri, eşitmə xətalarını, "
     "tələffüz qüsurlarını, orfoqrafiya və durğu işarələrini cümlənin kontekstinə uyğun bərpa etməkdir.\n\n"
     "DÜZƏLİŞ QAYDALARI:\n"
-    "1. Kontekstual Bərpa: Eşitmə zamanı təhrif olunmuş adları, qırıq və anlaşılmaz sözləri cümlənin ümumi məzmununa və məntiqinə görə bərpa et.\n"
-    "   - Şəxs adlarını və müraciətləri kontekstə görə düzəlt (məs: 'Doğuda' -> 'Toğrul da').\n"
-    "   - Fonetik təhrifləri və jarqonları ədəbi dilə uyğunlaşdır (məs: 'xeyr olsun' -> 'xeyir olsun', 'mehtəbdə' -> 'məktəbdə', "
-    "'köşağlar' -> 'uşaqlar', 'daha mən sulaklı' -> 'daha məsuliyyətli', 'həm qulağı hazır' -> 'həm qulaq asır', 'küsayana' -> 'küsəyən', 'ayala' -> 'əla', 'varut xoştur' -> 'çox xoşdur').\n"
-    "2. İxtisas və Tibbi Terminlər: Əgər mətndə tibbi və ya rəsmi terminlər varsa, onları dəqiq ədəbi və peşəkar leksikaya uyğunlaşdır (məs: 'rentmetoloq' -> 'revmatoloq', 'çək edilib' -> 'yoxlanılıb', 'müəyyənə' -> 'müayinə').\n"
-    "3. Durğu İşarələri və Abzaslar: Cümlələri aydın, səlis və oxunaqlı şəkildə formalaşdır, nöqtə, vergül və sual işarələrini dəqiq qoy.\n"
-    "4. YALNIZ DÜZƏLDİLMİŞ MƏTNİ ÇIXAR: Özündən heç bir giriş sözü, izahat, şərh və ya başlıq yazma."
+    "1. Kontekstual Bərpa: Eşitmə zamanı təhrif olunmuş adları, qırıq və anlaşılmaz sözləri cümlənin ümumi məzmununa görə bərpa et "
+    "('xeyr olsun' -> 'xeyir olsun', 'mehtəbdə' -> 'məktəbdə', 'köşağlar' -> 'uşaqlar', 'daha mən sulaklı' -> 'daha məsuliyyətli', 'varut xoştur' -> 'çox xoşdur').\n"
+    "2. Durğu İşarələri: Cümlələri aydın, səlis və oxunaqlı şəkildə formalaşdır, nöqtə və vergülləri dəqiq qoy.\n"
+    "3. YALNIZ düzəldilmiş mətni çıxar. Heç bir giriş sözü, izahat, şərh və ya başlıq yazma."
 )
 
 SYSTEM_PROMPT_QWEN = (
     "Sən Azərbaycan dili üzrə transkripsiya redaktorusan. "
-    "Vəzifən: Xam səs mətndəki fonetik eşitmə səhvlərini ('mehtəbdə' -> 'məktəbdə', 'köşağlar' -> 'uşaqlar', "
-    "'daha mən sulaklı' -> 'daha məsuliyyətli'), orfoqrafiya və durğu işarələrini kontekstə uyğun düzəltməkdir. "
+    "Vəzifən: Xam səs mətndəki fonetik eşitmə səhvlərini, orfoqrafiya və durğu işarələrini kontekstə uyğun düzəltməkdir. "
     "QAYDALAR: Cümlələri səlis və oxunaqlı et. Özündən heç bir şərh və ya başlıq yazma. Yalnız düzəldilmiş mətni yaz."
 )
 
@@ -48,8 +61,8 @@ def _clean_response(text: str) -> str:
     text = re.sub(r"<thought>.*?</thought>", "", text, flags=re.DOTALL).strip()
     text = re.sub(r"\n?\*?\(Qeyd:[^)]*\)\*?\s*$", "", text, flags=re.DOTALL).strip()
     text = re.sub(r"\n?\*\([^)]*\)\*\s*$", "", text, flags=re.DOTALL).strip()
-    text = re.sub(r"^(?:\*\*)?(?:Protokol|Düzəldilmiş Protokol|Düzəldilmiş mətn|Düzəldilmiş səlis mətn)[:\*]*\s*", "", text, flags=re.IGNORECASE).strip()
-    text = re.sub(r"^Xam mətndəki.*?Düzəldilmiş (?:səlis )?mətn:\s*", "", text, flags=re.IGNORECASE | re.DOTALL).strip()
+    text = re.sub(r"^(?:\*\*)?(?:Protokol|Düzəldilmiş Protokol|Düzəldilmiş mətn|Düzəldilmiş səlis mətn|Düzəldilmiş rəsmi tibbi protokol mətni)[:\*]*\s*", "", text, flags=re.IGNORECASE).strip()
+    text = re.sub(r"^Xam (?:transkripsiya|diktə).*?Düzəldilmiş (?:rəsmi tibbi protokol |səlis )?mətn(?:i)?:\s*", "", text, flags=re.IGNORECASE | re.DOTALL).strip()
     text = text.strip('"').strip("'").strip()
     return text
 
@@ -119,18 +132,27 @@ def llm_correct_transcript(
             return None
 
     else:
-        # Maximum accuracy mode using Gemma-4 12B
+        # Gemma-4 12B: Support both deep medical protocol and general speech
+        if model_choice in ("gemma", "gemma_medical"):
+            system_instruction = SYSTEM_PROMPT_MEDICAL
+            target_label = "Düzəldilmiş rəsmi tibbi protokol mətni:"
+            temperature = 0.1
+        else:
+            system_instruction = SYSTEM_PROMPT_GENERAL
+            target_label = "Düzəldilmiş səlis mətn:"
+            temperature = 0.2
+
         full_prompt = (
-            f"{SYSTEM_PROMPT_GEMMA}\n\n"
+            f"{system_instruction}\n\n"
             f"Xam transkripsiya:\n\"\"\"{raw_text}\"\"\"\n\n"
-            f"Düzəldilmiş səlis mətn:"
+            f"{target_label}"
         )
         payload = {
             "model": MODEL_GEMMA,
             "prompt": full_prompt,
             "stream": False,
             "options": {
-                "temperature": 0.2,
+                "temperature": temperature,
                 "top_p": 0.9,
                 "num_predict": 1200,
             }

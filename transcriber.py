@@ -131,10 +131,15 @@ def transcribe_audio_file(
             stage_info = f"❌ Gemini API Xətası: {err}"
             final_text = f"⚠️ Gemini API Xətası Baş Verdi:\n{err}\n\n─── Whisper Xam Mətni (Müqayisə üçün) ───\n{stage1_text}"
 
-    elif llm_mode in ("gemma", "qwen"):
+    elif llm_mode in ("gemma", "gemma_medical", "gemma_general", "qwen"):
         ollama_ok = is_ollama_available()
         if ollama_ok:
-            model_label = "Gemma-4 12B (Maksimal Dəqiq)" if llm_mode == "gemma" else "Qwen 2.5 3B (Ultra Sürətli)"
+            if llm_mode in ("gemma", "gemma_medical"):
+                model_label = "Gemma-4 12B (Rəsmi Tibbi Protokol)"
+            elif llm_mode == "gemma_general":
+                model_label = "Gemma-4 12B (Sərbəst Nitq Redaktəsi)"
+            else:
+                model_label = "Qwen 2.5 3B (Ultra Sürətli)"
             print(f"[Stage 2] Ollama {model_label} redaktəsi başladı...")
             llm_result = llm_correct_transcript(stage1_text, model_choice=llm_mode, timeout=120)
             if llm_result:
