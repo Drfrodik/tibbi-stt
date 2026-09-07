@@ -9,6 +9,29 @@ import config
 from gemini_corrector import gemini_transcribe_audio_direct
 from medical_lexicon import extract_recognized_medical_terms
 
+# ─── AUTO-PATCH GRADIO PREVIEW BANNER (Render & Cloud Support) ───────────────
+try:
+    _gradio_dir = Path(gr.__file__).parent / "templates" / "frontend"
+    for _tpl in ["index.html", "share.html"]:
+        _tpl_path = _gradio_dir / _tpl
+        if _tpl_path.exists():
+            _c = _tpl_path.read_text(encoding="utf-8")
+            _c = _c.replace(
+                "https://gradio.app/assets/img/meta-image.png",
+                "https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?w=1200&auto=format&fit=crop&q=80"
+            )
+            _c = _c.replace(
+                "Click to try out the app!",
+                "Səs yazısının rəsmi tibbi mətnə çevrilməsi"
+            )
+            _c = _c.replace(
+                "<title>Gradio</title>",
+                "<title>Tibbi Səs-Mətn</title>"
+            )
+            _tpl_path.write_text(_c, encoding="utf-8")
+except Exception as _e:
+    print(f"[Preview Patch] Note: {_e}", flush=True)
+
 SAMPLE_AUDIO_PATH = str(config.SAMPLES_DIR / "konsilium_numune.mp3")
 
 
@@ -400,6 +423,16 @@ with gr.Blocks(title="Tibbi Səs-Mətn") as demo:
         outputs=[text_output, file_output, terms_display]
     )
 
+HEAD_TAGS = """
+<meta property="og:title" content="Tibbi Səs-Mətn" />
+<meta property="og:description" content="Səs yazısının rəsmi tibbi mətnə çevrilməsi" />
+<meta property="og:image" content="https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?w=1200&auto=format&fit=crop&q=80" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="Tibbi Səs-Mətn" />
+<meta name="twitter:description" content="Səs yazısının rəsmi tibbi mətnə çevrilməsi" />
+<meta name="twitter:image" content="https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?w=1200&auto=format&fit=crop&q=80" />
+"""
+
 if __name__ == "__main__":
     is_hf = os.environ.get("SPACE_ID") is not None
     is_cloud = is_hf or os.environ.get("RENDER") is not None or "PORT" in os.environ
@@ -410,6 +443,7 @@ if __name__ == "__main__":
         share=not is_cloud,
         theme=app_theme,
         css=CUSTOM_CSS,
+        head=HEAD_TAGS,
         inbrowser=False
     )
     print(f"LOCAL_URL: {local_url}", flush=True)
