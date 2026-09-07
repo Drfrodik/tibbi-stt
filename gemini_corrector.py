@@ -202,42 +202,72 @@ def gemini_transcribe_audio_direct(
             "4. YALNIZ DÜZƏLDİLMİŞ TRANSKRİPSİYANI ÇIXAR."
         )
 
-        print(f"[AI Pipeline] İlkin transkripsiya hazırlanır (Gemini 3.6 Flash)...", flush=True)
-        response = client.models.generate_content(
-            model="gemini-3.6-flash",
-            contents=[uploaded_file, prompt],
-            config=types.GenerateContentConfig(
-                temperature=0.0,
-                max_output_tokens=4096,
-            )
-        )
-        result = response.text.strip() if response.text else ""
+        models_to_try = ["gemini-3.6-flash", "gemini-3.7-flash", "gemini-2.5-flash"]
+        result = ""
+        last_error = None
+
+        for model_name in models_to_try:
+            try:
+                print(f"[AI Pipeline] Transkripsiya modeli sınanır: {model_name}...", flush=True)
+                response = client.models.generate_content(
+                    model=model_name,
+                    contents=[uploaded_file, prompt],
+                    config=types.GenerateContentConfig(
+                        temperature=0.0,
+                        max_output_tokens=4096,
+                    )
+                )
+                if response and response.text:
+                    result = response.text.strip()
+                    break
+            except Exception as model_exc:
+                err_text = str(model_exc)
+                last_error = model_exc
+                if "429" in err_text or "RESOURCE_EXHAUSTED" in err_text:
+                    print(f"[AI Pipeline] {model_name} limiti doldu (429). Ehtiyat modelə keçilir...", flush=True)
+                    continue
+                else:
+                    raise model_exc
+
+        if not result and last_error:
+            if "429" in str(last_error) or "RESOURCE_EXHAUSTED" in str(last_error):
+                return None, "⚠️ Google AI pulsuz sorğu limiti (dəqiqədə 20 sorğu). Zəhmət olmasa ~30 saniyə gözləyib təkrar klikləyin."
+            raise last_error
 
         # If Gemma 4 model is chosen, refine medical terminology with Gemma 4
         if result and ai_engine.startswith("gemma-4"):
-            print(f"[AI Pipeline] {ai_engine} modeli ilə tibbi orfoqrafik cilalama aparılır...", flush=True)
-            gemma_prompt = (
-                f"Sən Azərbaycan dili üzrə tibbi sənədləşdirmə və orfoqrafiya mütəxəssisisən.\n"
-                f"Aşağıdakı mətni orfoqrafik və tibbi terminoloji cəhətdən səliqəyə sal. "
-                f"Məzmuna, faktlara və cümlələrin ardıcıllığına tam sadiq qal.\n"
-                f"CİDDİ QAYDA: Əlavə heç bir başlıq, bənd və ya şərh YAZMA. YALNIZ düzəldilmiş mətni çıxar.\n\n"
-                f"Mətn:\n\"{result}\""
-            )
-            gemma_resp = client.models.generate_content(
-                model=ai_engine,
-                contents=gemma_prompt,
-                config=types.GenerateContentConfig(
-                    temperature=0.0,
-                    max_output_tokens=4096,
+            try:
+                print(f"[AI Pipeline] {ai_engine} modeli ilə tibbi orfoqrafik cilalama aparılır...", flush=True)
+                gemma_prompt = (
+                    f"Sən Azərbaycan dili üzrə tibbi sənədləşdirmə və orfoqrafiya mütəxəssisisən.\n"
+                    f"Aşağıdakı mətni orfoqrafik və tibbi terminoloji cəhətdən səliqəyə sal. "
+                    f"Məzmuna, faktlara və cümlələrin ardıcıllığına tam sadiq qal.\n"
+                    f"CİDDİ QAYDA: Əlavə heç bir başlıq, bənd və ya şərh YAZMA. YALNIZ düzəldilmiş mətni çıxar.\n\n"
+                    f"Mətn:\n\"{result}\""
                 )
-            )
-            if gemma_resp.text:
-                result = gemma_resp.text.strip()
+                gemma_resp = client.models.generate_content(
+                    model=ai_engine,
+                    contents=gemma_prompt,
+                    config=types.GenerateContentConfig(
+                        temperature=0.0,
+                        max_output_tokens=4096,
+                    )
+                )
+                if gemma_resp.text:
+                    result = gemma_resp.text.strip()
+            except Exception as gemma_exc:
+                if "429" in str(gemma_exc) or "RESOURCE_EXHAUSTED" in str(gemma_exc):
+                    print(f"[AI Warning] {ai_engine} limiti doldu (429), ilkin transkripsiya qaytarılır.", flush=True)
+                else:
+                    print(f"[AI Warning] {ai_engine} xətası: {gemma_exc}", flush=True)
 
         return (result if result else None), None
 
     except Exception as exc:
-        return None, f"AI Mühərriki xətası: {str(exc)}"
+        err_msg = str(exc)
+        if "429" in err_msg or "RESOURCE_EXHAUSTED" in err_msg:
+            return None, "⚠️ Google AI pulsuz sorğu limiti: Qısa müddətdə çox sayda test aparılıb. Zəhmət olmasa ~30 saniyə sonra yenidən cəhd edin."
+        return None, f"AI Mühərriki xətası: {err_msg}"
 
     finally:
         # Layer 3: Immediate Ephemeral Cleanup - Delete file from Google Cloud immediately!
