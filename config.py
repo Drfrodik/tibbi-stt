@@ -22,9 +22,10 @@ OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 SAMPLES_DIR.mkdir(parents=True, exist_ok=True)
 MODELS_DIR.mkdir(parents=True, exist_ok=True)
 
-# Register local FFmpeg if found on system
+# Register local FFmpeg & FFprobe if found on system
 KNOWN_FFMPEG_PATHS = [
     r"C:\Users\frodo\AppData\Local\Programs\vidtsx-desktop\resources\ffmpeg",
+    r"C:\Users\frodo\AppData\Local\Programs\vidtsx-desktop\resources\compositor",
     r"C:\Program Files\ffmpeg\bin",
     r"C:\ffmpeg\bin",
 ]
@@ -32,7 +33,6 @@ KNOWN_FFMPEG_PATHS = [
 for p in KNOWN_FFMPEG_PATHS:
     if os.path.exists(p) and p not in os.environ.get("PATH", ""):
         os.environ["PATH"] = p + os.pathsep + os.environ.get("PATH", "")
-        break
 
 # Default ASR settings
 DEFAULT_MODEL_NAME = "small"  # Fast, accurate Azerbaijani medical speech on CPU
