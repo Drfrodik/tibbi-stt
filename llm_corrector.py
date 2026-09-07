@@ -18,41 +18,38 @@ OLLAMA_BASE_URL = "http://127.0.0.1:11434"
 MODEL_GEMMA = "hf.co/unsloth/gemma-4-12b-it-GGUF:Q4_K_M"
 MODEL_QWEN = "qwen2.5:3b"
 
-# Medical system instructions
+# Universal speech and medical transcription instructions
 SYSTEM_PROMPT_GEMMA = (
-    "Sən Azərbaycan dili üzrə tibbi transkripsiya redaktorusan.\n"
-    "VƏZİFƏN: Verilmiş xam transkripsiya mətnindəki səs tanıma xətalarını, fonetik təhrifləri, "
-    "orfoqrafiya və durğu işarələrini düzəltməkdir.\n\n"
-    "CİDDİ QAYDALAR:\n"
-    "1. ORİJİNAL MƏTNİ MAKSİMAL QORU: Danışan həkimin cümlə ardıcıllığını, istifadə etdiyi sözləri və fikrini dəqiq saxla.\n"
-    "2. QƏTİYYƏN HEÇ BİR ƏLAVƏ ETMƏ: Özündən heç bir başlıq (məs: **Müzakirə**, **Qərar**), bölmə, nömrələmə (1, 2...), şərh və ya mətndə deyilməyən yeni tibbi fikir əlavə etmə!\n"
-    "3. HEÇ BİR ŞABLON UYDURMA: YALNIZ deyilən cümlələri qrammatik cəhətdən düzəlt.\n"
-    "4. YALNIZ DÜZƏLDİLMİŞ MƏTNİ ÇIXAR: Heç bir giriş, başlıq və ya izahat yazma.\n\n"
-    "Nümunə düzəlişlər:\n"
-    "- 'çək edilib' -> 'yoxlanılıb'\n"
-    "- 'rentmetoloq/renmatoloq' -> 'revmatoloq'\n"
-    "- 'neorocarah/niyiracaraq' -> 'neyrocərrah'\n"
-    "- 'sonarkı müənnələr' -> 'sonrakı müayinələr'\n"
-    "- 'müəyyənə-muhaca planı' -> 'müayinə-müalicə planı'"
+    "Sən peşəkar Azərbaycan dili nitq və transkripsiya redaktorusan.\n"
+    "VƏZİFƏN: Səs tanıma (Speech-to-Text) zamanı yaranmış fonetik təhrifləri, eşitmə xətalarını, "
+    "tələffüz qüsurlarını, orfoqrafiya və durğu işarələrini cümlənin kontekstinə uyğun bərpa etməkdir.\n\n"
+    "DÜZƏLİŞ QAYDALARI:\n"
+    "1. Kontekstual Bərpa: Eşitmə zamanı təhrif olunmuş adları, qırıq və anlaşılmaz sözləri cümlənin ümumi məzmununa və məntiqinə görə bərpa et.\n"
+    "   - Şəxs adlarını və müraciətləri kontekstə görə düzəlt (məs: 'Doğuda' -> 'Toğrul da').\n"
+    "   - Fonetik təhrifləri və jarqonları ədəbi dilə uyğunlaşdır (məs: 'xeyr olsun' -> 'xeyir olsun', 'mehtəbdə' -> 'məktəbdə', "
+    "'köşağlar' -> 'uşaqlar', 'daha mən sulaklı' -> 'daha məsuliyyətli', 'həm qulağı hazır' -> 'həm qulaq asır', 'küsayana' -> 'küsəyən', 'ayala' -> 'əla', 'varut xoştur' -> 'çox xoşdur').\n"
+    "2. İxtisas və Tibbi Terminlər: Əgər mətndə tibbi və ya rəsmi terminlər varsa, onları dəqiq ədəbi və peşəkar leksikaya uyğunlaşdır (məs: 'rentmetoloq' -> 'revmatoloq', 'çək edilib' -> 'yoxlanılıb', 'müəyyənə' -> 'müayinə').\n"
+    "3. Durğu İşarələri və Abzaslar: Cümlələri aydın, səlis və oxunaqlı şəkildə formalaşdır, nöqtə, vergül və sual işarələrini dəqiq qoy.\n"
+    "4. YALNIZ DÜZƏLDİLMİŞ MƏTNİ ÇIXAR: Özündən heç bir giriş sözü, izahat, şərh və ya başlıq yazma."
 )
 
 SYSTEM_PROMPT_QWEN = (
-    "Sən Azərbaycan dili üzrə tibbi transkripsiya redaktorusan. "
-    "Vəzifən: Xam mətndəki fonetik səhvləri ('çək edilib' -> 'yoxlanılıb', "
-    "'rentmetoloq' -> 'revmatoloq', 'sonarkı müənnələr' -> 'növbəti müayinələr') düzəltməkdir. "
-    "QAYDALAR: Orijinal mətni və cümlə sırasını dəqiq qoru. "
-    "Özündən heç bir başlıq, bənd (1, 2) və ya əlavə fikir uydurma. "
-    "Yalnız və yalnız düzəldilmiş mətni yaz."
+    "Sən Azərbaycan dili üzrə transkripsiya redaktorusan. "
+    "Vəzifən: Xam səs mətndəki fonetik eşitmə səhvlərini ('mehtəbdə' -> 'məktəbdə', 'köşağlar' -> 'uşaqlar', "
+    "'daha mən sulaklı' -> 'daha məsuliyyətli'), orfoqrafiya və durğu işarələrini kontekstə uyğun düzəltməkdir. "
+    "QAYDALAR: Cümlələri səlis və oxunaqlı et. Özündən heç bir şərh və ya başlıq yazma. Yalnız düzəldilmiş mətni yaz."
 )
 
 
 def _clean_response(text: str) -> str:
     """Strips thinking/channel tags and unwanted model commentary."""
-    text = re.sub(r"<\|channel>[^<]*<channel\|>", "", text, flags=re.DOTALL).strip()
+    text = re.sub(r"<\|channel>.*?<channel\|>", "", text, flags=re.DOTALL).strip()
+    text = re.sub(r"<think>.*?</think>", "", text, flags=re.DOTALL).strip()
+    text = re.sub(r"<thought>.*?</thought>", "", text, flags=re.DOTALL).strip()
     text = re.sub(r"\n?\*?\(Qeyd:[^)]*\)\*?\s*$", "", text, flags=re.DOTALL).strip()
     text = re.sub(r"\n?\*\([^)]*\)\*\s*$", "", text, flags=re.DOTALL).strip()
-    text = re.sub(r"^(?:\*\*)?(?:Protokol|Düzəldilmiş Protokol|Düzəldilmiş mətn)[:\*]*\s*", "", text, flags=re.IGNORECASE).strip()
-    text = re.sub(r"^Xam mətndəki.*?Düzəldilmiş mətn:\s*", "", text, flags=re.IGNORECASE | re.DOTALL).strip()
+    text = re.sub(r"^(?:\*\*)?(?:Protokol|Düzəldilmiş Protokol|Düzəldilmiş mətn|Düzəldilmiş səlis mətn)[:\*]*\s*", "", text, flags=re.IGNORECASE).strip()
+    text = re.sub(r"^Xam mətndəki.*?Düzəldilmiş (?:səlis )?mətn:\s*", "", text, flags=re.IGNORECASE | re.DOTALL).strip()
     text = text.strip('"').strip("'").strip()
     return text
 
@@ -104,10 +101,10 @@ def llm_correct_transcript(
                     "model": MODEL_QWEN,
                     "messages": [
                         {"role": "system", "content": SYSTEM_PROMPT_QWEN},
-                        {"role": "user", "content": f"Xam transkripsiya:\n\"{raw_text}\"\n\nDüzəldilmiş rəsmi tibbi protokol:"}
+                        {"role": "user", "content": f"Xam transkripsiya:\n\"{raw_text}\"\n\nDüzəldilmiş səlis mətn:"}
                     ],
                     "stream": False,
-                    "options": {"temperature": 0.1, "num_predict": 400}
+                    "options": {"temperature": 0.2, "num_predict": 800}
                 },
                 timeout=timeout
             )
@@ -125,17 +122,17 @@ def llm_correct_transcript(
         # Maximum accuracy mode using Gemma-4 12B
         full_prompt = (
             f"{SYSTEM_PROMPT_GEMMA}\n\n"
-            f"Xam transkripsiya:\n\"{raw_text}\"\n\n"
-            f"Düzəldilmiş rəsmi tibbi protokol:"
+            f"Xam transkripsiya:\n\"\"\"{raw_text}\"\"\"\n\n"
+            f"Düzəldilmiş səlis mətn:"
         )
         payload = {
             "model": MODEL_GEMMA,
             "prompt": full_prompt,
             "stream": False,
             "options": {
-                "temperature": 0.1,
+                "temperature": 0.2,
                 "top_p": 0.9,
-                "num_predict": 500,
+                "num_predict": 1200,
             }
         }
 
