@@ -170,44 +170,52 @@ div[data-testid="column"] > div:has(> .block) {
     box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.4) !important;
 }
 
-/* ─── Luxury Hero Header ─────────────────────────────────────────────────── */
+/* ─── Minimal Luxury Header ─────────────────────────────────────────────── */
 .luxury-hero {
     text-align: center;
-    padding: 32px 20px 28px 20px;
-    margin-bottom: 24px;
-    background: linear-gradient(180deg, rgba(15, 23, 42, 0.88) 0%, rgba(15, 23, 42, 0.55) 100%) !important;
-    backdrop-filter: blur(24px) !important;
-    -webkit-backdrop-filter: blur(24px) !important;
-    border: 1px solid rgba(56, 189, 248, 0.22) !important;
-    border-radius: 24px !important;
-    box-shadow: 0 16px 40px -10px rgba(0, 0, 0, 0.55), 0 0 30px -10px rgba(2, 132, 199, 0.2) !important;
-    position: relative;
-    overflow: hidden;
+    padding: 18px 16px;
+    margin-bottom: 20px;
+    background: linear-gradient(180deg, rgba(15, 23, 42, 0.8) 0%, rgba(15, 23, 42, 0.45) 100%) !important;
+    backdrop-filter: blur(20px) !important;
+    -webkit-backdrop-filter: blur(20px) !important;
+    border: 1px solid rgba(56, 189, 248, 0.18) !important;
+    border-radius: 18px !important;
+    box-shadow: 0 8px 25px -5px rgba(0, 0, 0, 0.4) !important;
 }
 
-.luxury-hero::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 20%;
-    right: 20%;
-    height: 1px;
-    background: linear-gradient(90deg, transparent, rgba(56, 189, 248, 0.7), transparent);
-}
-
-.luxury-badge {
-    display: inline-flex;
+.hero-brand {
+    display: flex;
     align-items: center;
-    gap: 10px;
-    padding: 7px 18px;
-    background: rgba(15, 23, 42, 0.85);
-    border: 1px solid rgba(16, 185, 129, 0.35);
-    border-radius: 9999px;
-    margin-bottom: 18px;
-    box-shadow: 0 0 16px rgba(16, 185, 129, 0.12);
+    justify-content: center;
+    gap: 12px;
+}
+
+.brand-icon-box {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    min-width: 40px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, rgba(2, 132, 199, 0.22) 0%, rgba(16, 185, 129, 0.18) 100%);
+    border: 1px solid rgba(56, 189, 248, 0.3);
+    color: #38bdf8;
+}
+
+.hero-title {
+    font-family: 'Outfit', sans-serif !important;
+    font-size: 24px !important;
+    font-weight: 700 !important;
+    background: linear-gradient(135deg, #ffffff 40%, #e2e8f0 70%, #38bdf8 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin: 0 !important;
+    letter-spacing: -0.02em !important;
 }
 
 .pulse-emerald {
+    display: inline-block;
     width: 8px;
     height: 8px;
     min-width: 8px;
@@ -221,92 +229,6 @@ div[data-testid="column"] > div:has(> .block) {
     0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.8); }
     70% { box-shadow: 0 0 0 9px rgba(16, 185, 129, 0); }
     100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
-}
-
-.badge-title {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 11px;
-    font-weight: 700;
-    color: #34d399;
-    letter-spacing: 0.08em;
-}
-
-.badge-dot {
-    color: #475569;
-}
-
-.badge-sub {
-    font-family: 'Plus Jakarta Sans', sans-serif;
-    font-size: 11.5px;
-    font-weight: 500;
-    color: #94a3b8;
-}
-
-.hero-brand {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 16px;
-    margin-bottom: 10px;
-}
-
-.brand-icon-box {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 52px;
-    height: 52px;
-    min-width: 52px;
-    border-radius: 16px;
-    background: linear-gradient(135deg, rgba(2, 132, 199, 0.22) 0%, rgba(16, 185, 129, 0.18) 100%);
-    border: 1px solid rgba(56, 189, 248, 0.35);
-    color: #38bdf8;
-    box-shadow: 0 4px 20px rgba(2, 132, 199, 0.25);
-}
-
-.hero-title {
-    font-family: 'Outfit', sans-serif !important;
-    font-size: 32px !important;
-    font-weight: 800 !important;
-    background: linear-gradient(135deg, #ffffff 30%, #e2e8f0 70%, #38bdf8 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    margin: 0 !important;
-    letter-spacing: -0.03em !important;
-}
-
-.hero-subtitle {
-    font-family: 'Plus Jakarta Sans', sans-serif;
-    font-size: 14.5px;
-    color: #94a3b8;
-    margin: 4px 0 0 0;
-    font-weight: 400;
-}
-
-.hero-tags {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    justify-content: center;
-    gap: 10px;
-    margin-top: 18px;
-}
-
-.hero-tag {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    padding: 6px 14px;
-    background: rgba(30, 41, 59, 0.55);
-    border: 1px solid rgba(148, 163, 184, 0.16);
-    border-radius: 10px;
-    font-size: 12px;
-    color: #cbd5e1;
-    font-weight: 500;
-}
-
-.hero-tag svg {
-    color: #38bdf8;
 }
 
 /* ─── Radio Selector Cards (Gemma 4 Modes) ────────────────────────────────── */
@@ -397,35 +319,19 @@ div[data-testid="radio-group"] input[type="radio"] {
     transform: translateY(-1px) !important;
 }
 
-/* ─── Mobile Screen WakeLock Banner ────────────────────────────────────────── */
+/* ─── Mobile Screen WakeLock Status ────────────────────────────────────────── */
 .wakelock-banner {
-    display: flex;
-    align-items: flex-start;
-    gap: 12px;
-    padding: 13px 16px;
-    background: rgba(16, 185, 129, 0.06) !important;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 14px;
+    background: rgba(16, 185, 129, 0.08) !important;
     border: 1px solid rgba(16, 185, 129, 0.22) !important;
-    border-radius: 14px !important;
+    border-radius: 9999px !important;
     margin-top: 14px !important;
     color: #94a3b8 !important;
-    font-size: 12.5px !important;
-    line-height: 1.5 !important;
-}
-
-.wakelock-icon-box {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    min-width: 30px;
-    height: 30px;
-    background: rgba(16, 185, 129, 0.15);
-    border-radius: 8px;
-    color: #10b981;
-    margin-top: 1px;
-}
-
-.wakelock-text b {
-    color: #f1f5f9;
+    font-size: 12px !important;
+    line-height: 1.4 !important;
 }
 
 /* ─── Textarea & Result Output ────────────────────────────────────────────── */
@@ -547,29 +453,13 @@ canvas {
 
 @media (max-width: 768px) {
     .gradio-container {
-        padding: 12px !important;
+        padding: 10px !important;
     }
     .luxury-hero {
-        padding: 20px 14px 22px 14px !important;
+        padding: 14px 12px !important;
     }
     .hero-title {
-        font-size: 24px !important;
-    }
-    .hero-brand {
-        flex-direction: column;
-        gap: 10px;
-    }
-    .brand-icon-box {
-        width: 44px;
-        height: 44px;
-        min-width: 44px;
-    }
-    .hero-tags {
-        gap: 6px;
-    }
-    .hero-tag {
-        font-size: 11px;
-        padding: 4px 10px;
+        font-size: 20px !important;
     }
 }
 """
@@ -606,41 +496,18 @@ app_theme = gr.themes.Soft(
     button_secondary_border_color_dark="rgba(148, 163, 184, 0.2)",
 )
 
-with gr.Blocks(title="Tibbi Səs-Mətn AI") as demo:
+with gr.Blocks(title="Tibbi Səs-Mətn") as demo:
     gr.HTML("""
     <div class="luxury-hero">
-        <div class="luxury-badge">
-            <span class="pulse-emerald"></span>
-            <span class="badge-title">100% LOKAL & MƏXFİ AI SİSTEMİ</span>
-            <span class="badge-dot">•</span>
-            <span class="badge-sub">OLLAMA GEMMA 4 (12B) + WHISPER</span>
-        </div>
         <div class="hero-brand">
             <div class="brand-icon-box">
-                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <path d="M4.8 2.3A.3.3 0 1 0 5 2H4a2 2 0 0 0-2 2v5a6 6 0 0 0 6 6v0a6 6 0 0 0 6-6V4a2 2 0 0 0-2-2h-1a.2.2 0 1 0 .3.3"/>
                     <path d="M8 15v1a6 6 0 0 0 6 6v0a6 6 0 0 0 6-6v-4"/>
                     <circle cx="20" cy="10" r="2"/>
                 </svg>
             </div>
-            <div>
-                <h1 class="hero-title">Tibbi Səs-Mətn AI</h1>
-                <p class="hero-subtitle">Klinik Diktələrin Rəsmi Protokol və Epikriz Formatına İntellektual Çevrilməsi</p>
-            </div>
-        </div>
-        <div class="hero-tags">
-            <span class="hero-tag">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-                Həkim Məxfiliyi Təminatlı
-            </span>
-            <span class="hero-tag">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
-                Sürətli GPU Akselerasiyası
-            </span>
-            <span class="hero-tag">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="m4.93 4.93 4.24 4.24"/><path d="m14.83 9.17 4.24-4.24"/><path d="m14.83 14.83 4.24 4.24"/><path d="m9.17 14.83-4.24 4.24"/></svg>
-                Klinik Leksikon & Avto-Korreksiya
-            </span>
+            <h1 class="hero-title">Tibbi Səs-Mətn</h1>
         </div>
     </div>
     """)
@@ -650,32 +517,32 @@ with gr.Blocks(title="Tibbi Səs-Mətn AI") as demo:
             audio_input = gr.Audio(
                 sources=["upload", "microphone"],
                 type="filepath",
-                label="🎙️ Səs Yazısı (Mikrofon və ya Fayl)",
+                label="Səs Yazısı",
                 editable=False,
             )
 
             with gr.Row():
-                sample_btn = gr.Button("🎧 Nümunə Diktə Səsi", variant="secondary", size="sm")
+                sample_btn = gr.Button("🎧 Nümunə Səs", variant="secondary", size="sm")
 
             model_selector = gr.Radio(
                 choices=[
-                    ("🩺 Gemma 4 (12B) — Rəsmi Tibbi Protokol & Epikriz", "gemma"),
-                    ("🗣️ Gemma 4 (12B) — Sərbəst Danışıq & Nitq", "gemma_general"),
+                    ("🩺 Tibbi Protokol & Epikriz", "gemma"),
+                    ("🗣️ Sərbəst Danışıq", "gemma_general"),
                 ],
                 value="gemma",
-                label="🧠 Süni Zəka Redaktə Rejimi",
+                label="Redaktə Rejimi",
             )
 
             with gr.Row():
                 transcribe_btn = gr.Button(
-                    "✨ Protokola Çevir",
+                    "🚀 Mətnə Çevir",
                     variant="primary",
                     size="lg",
                     scale=3,
                     elem_classes=["premium-btn"]
                 )
                 restore_btn = gr.Button(
-                    "🔄 Son Nəticəni Bərpa Et",
+                    "🔄 Bərpa Et",
                     variant="secondary",
                     size="lg",
                     scale=2,
@@ -684,28 +551,21 @@ with gr.Blocks(title="Tibbi Səs-Mətn AI") as demo:
 
             gr.HTML("""
             <div class="wakelock-banner">
-                <div class="wakelock-icon-box">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <rect x="5" y="2" width="14" height="20" rx="2" ry="2"/>
-                        <line x1="12" y1="18" x2="12.01" y2="18"/>
-                    </svg>
-                </div>
-                <div class="wakelock-text">
-                    <b>Mobil Ekran və Əlaqə Qoruyucusu Aktivdir:</b> Emal zamanı telefon ekranının sönməsinin və bağlantının kəsilməsinin qarşısı avtomatik alınır. Əlaqə zəifləsə belə, <b>"Son Nəticəni Bərpa Et"</b> ilə mətni dərhal geri qaytara bilərsiniz.
-                </div>
+                <span class="pulse-emerald"></span>
+                <span>Mobil ekran qoruyucusu aktivdir</span>
             </div>
             """)
 
         with gr.Column(scale=1):
             text_output = gr.Textbox(
-                label="📝 Rəsmi Tibbi Protokol / Redaktə Edilmiş Mətn",
-                placeholder="Çevrilmiş və düzəldilmiş rəsmi tibbi protokol burada görünəcək...",
+                label="Mətn",
+                placeholder="Mətn burada görünəcək...",
                 lines=12,
                 buttons=["copy"],
             )
 
             file_output = gr.File(
-                label="📥 Protokol Sənədini Endir (.txt)",
+                label="Faylı Endir (.txt)",
                 file_types=[".txt"],
             )
 
@@ -734,12 +594,12 @@ HEAD_TAGS = """
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
-<meta property="og:title" content="Tibbi Səs-Mətn AI" />
-<meta property="og:description" content="Səs yazısının rəsmi tibbi mətnə və epikrizə çevrilməsi" />
+<meta property="og:title" content="Tibbi Səs-Mətn" />
+<meta property="og:description" content="Səs yazısının rəsmi tibbi mətnə çevrilməsi" />
 <meta property="og:image" content="https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?w=1200&auto=format&fit=crop&q=80" />
 <meta name="twitter:card" content="summary_large_image" />
-<meta name="twitter:title" content="Tibbi Səs-Mətn AI" />
-<meta name="twitter:description" content="Səs yazısının rəsmi tibbi mətnə və epikrizə çevrilməsi" />
+<meta name="twitter:title" content="Tibbi Səs-Mətn" />
+<meta name="twitter:description" content="Səs yazısının rəsmi tibbi mətnə çevrilməsi" />
 <meta name="twitter:image" content="https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?w=1200&auto=format&fit=crop&q=80" />
 <script>
 // ─── Mobile Screen WakeLock & Background Resilience ─────────────────────────
@@ -793,7 +653,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function attachListeners() {
         const buttons = document.querySelectorAll('button');
         buttons.forEach(btn => {
-            if (btn.innerText && (btn.innerText.includes('Mətnə Çevir') || btn.innerText.includes('Transcribe'))) {
+            if (btn.innerText && (btn.innerText.includes('Mətnə Çevir') || btn.innerText.includes('Transkripsiya') || btn.innerText.includes('Transcribe'))) {
                 if (!btn.dataset.wakelockAttached) {
                     btn.dataset.wakelockAttached = 'true';
                     btn.addEventListener('click', () => {
