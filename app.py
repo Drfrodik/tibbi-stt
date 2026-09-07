@@ -402,10 +402,12 @@ with gr.Blocks(title="Tibbi Səs-Mətn") as demo:
 
 if __name__ == "__main__":
     is_hf = os.environ.get("SPACE_ID") is not None
+    is_cloud = is_hf or os.environ.get("RENDER") is not None or "PORT" in os.environ
+    port = int(os.environ.get("PORT", 7860))
     _, local_url, share_url = demo.launch(
         server_name="0.0.0.0",
-        server_port=7860,
-        share=not is_hf,
+        server_port=port,
+        share=not is_cloud,
         theme=app_theme,
         css=CUSTOM_CSS,
         inbrowser=False
