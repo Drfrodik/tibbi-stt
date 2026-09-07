@@ -167,9 +167,15 @@ def gemini_correct_transcript(
 
 def gemini_transcribe_audio_direct(
     audio_path: str,
-    api_key: Optional[str] = None
+    api_key: Optional[str] = None,
+    ai_engine: str = "gemini-3.6-flash"
 ) -> Tuple[Optional[str], Optional[str]]:
-    """Directly transcribes audio with Gemini 3.6 Flash and immediately deletes cloud file.
+    """Directly transcribes audio with Gemini 3.6 Flash and optionally polishes with Gemma 4.
+
+    Args:
+        audio_path: Path to the audio file.
+        api_key: Optional Gemini API key override.
+        ai_engine: 'gemini-3.6-flash', 'gemma-4-26b-a4b-it', or 'gemma-4-31b-it'.
 
     Returns:
         Tuple of (result_text, error_message).
@@ -183,7 +189,7 @@ def gemini_transcribe_audio_direct(
 
     uploaded_file = None
     try:
-        print("[Gemini Direct] Audio faylı Google Cloud-a yüklənir...")
+        print(f"[AI Pipeline] Audio faylı Google Cloud-a yüklənir...", flush=True)
         uploaded_file = client.files.upload(file=audio_path)
 
         prompt = (
@@ -196,7 +202,7 @@ def gemini_transcribe_audio_direct(
             "4. YALNIZ DÜZƏLDİLMİŞ TRANSKRİPSİYANI ÇIXAR."
         )
 
-        print("[Gemini Direct] Gemini 3.6 Flash protokolu hazırlayır...")
+        print(f"[AI Pipeline] İlkin transkripsiya hazırlanır (Gemini 3.6 Flash)...", flush=True)
         response = client.models.generate_content(
             model="gemini-3.6-flash",
             contents=[uploaded_file, prompt],
@@ -206,16 +212,38 @@ def gemini_transcribe_audio_direct(
             )
         )
         result = response.text.strip() if response.text else ""
+
+        # If Gemma 4 model is chosen, refine medical terminology with Gemma 4
+        if result and ai_engine.startswith("gemma-4"):
+            print(f"[AI Pipeline] {ai_engine} modeli ilə tibbi orfoqrafik cilalama aparılır...", flush=True)
+            gemma_prompt = (
+                f"Sən Azərbaycan dili üzrə tibbi sənədləşdirmə və orfoqrafiya mütəxəssisisən.\n"
+                f"Aşağıdakı mətni orfoqrafik və tibbi terminoloji cəhətdən səliqəyə sal. "
+                f"Məzmuna, faktlara və cümlələrin ardıcıllığına tam sadiq qal.\n"
+                f"CİDDİ QAYDA: Əlavə heç bir başlıq, bənd və ya şərh YAZMA. YALNIZ düzəldilmiş mətni çıxar.\n\n"
+                f"Mətn:\n\"{result}\""
+            )
+            gemma_resp = client.models.generate_content(
+                model=ai_engine,
+                contents=gemma_prompt,
+                config=types.GenerateContentConfig(
+                    temperature=0.0,
+                    max_output_tokens=4096,
+                )
+            )
+            if gemma_resp.text:
+                result = gemma_resp.text.strip()
+
         return (result if result else None), None
 
     except Exception as exc:
-        return None, f"Gemini Audio xətası: {str(exc)}"
+        return None, f"AI Mühərriki xətası: {str(exc)}"
 
     finally:
         # Layer 3: Immediate Ephemeral Cleanup - Delete file from Google Cloud immediately!
         if uploaded_file and hasattr(uploaded_file, "name"):
             try:
                 client.files.delete(name=uploaded_file.name)
-                print(f"[Gemini Privacy] Audio faylı Google Cloud serverlərindən dərhal silindi (0 retention).")
+                print(f"[AI Privacy] Audio faylı Google Cloud serverlərindən dərhal silindi (0 retention).", flush=True)
             except Exception as del_err:
-                print(f"[Gemini Cleanup Warning]: {del_err}")
+                print(f"[AI Cleanup Warning]: {del_err}", flush=True)

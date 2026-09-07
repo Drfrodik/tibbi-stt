@@ -43,8 +43,8 @@ except Exception as _e:
 SAMPLE_AUDIO_PATH = str(config.SAMPLES_DIR / "konsilium_numune.mp3")
 
 
-def process_audio(audio_path: str, api_key: str = ""):
-    """Processes audio directly via Gemini 3.6 Flash and returns transcript and file."""
+def process_audio(audio_path: str, model_choice: str = "gemini-3.6-flash", api_key: str = ""):
+    """Processes audio directly via Gemini 3.6 Flash / Gemma 4 and returns transcript and file."""
     if not audio_path:
         return "⚠️ Zəhmət olmasa səs faylı yükləyin və ya mikrofondan danışın.", None, ""
 
@@ -52,7 +52,11 @@ def process_audio(audio_path: str, api_key: str = ""):
         return f"❌ Audio faylı tapılmadı: {audio_path}", None, ""
 
     key_to_use = api_key.strip() if api_key else None
-    result_text, err = gemini_transcribe_audio_direct(audio_path, api_key=key_to_use)
+    result_text, err = gemini_transcribe_audio_direct(
+        audio_path,
+        api_key=key_to_use,
+        ai_engine=model_choice
+    )
 
     if err:
         return f"❌ Gemini API Xətası:\n{err}", None, ""
@@ -379,6 +383,16 @@ with gr.Blocks(title="Tibbi Səs-Mətn") as demo:
             with gr.Row():
                 sample_btn = gr.Button("🎧 Nümunə Səs", variant="secondary", size="sm")
 
+            model_selector = gr.Radio(
+                choices=[
+                    ("⚡ Gemini 3.6 Flash (Sürətli)", "gemini-3.6-flash"),
+                    ("🧠 Gemma 4 (26B MoE)", "gemma-4-26b-a4b-it"),
+                    ("🔬 Gemma 4 (31B Dense)", "gemma-4-31b-it"),
+                ],
+                value="gemini-3.6-flash",
+                label="🤖 Süni Zəka Modeli",
+            )
+
             transcribe_btn = gr.Button(
                 "🚀 Mətnə Çevir",
                 variant="primary",
@@ -427,7 +441,7 @@ with gr.Blocks(title="Tibbi Səs-Mətn") as demo:
 
     transcribe_btn.click(
         fn=process_audio,
-        inputs=[audio_input, api_key_input],
+        inputs=[audio_input, model_selector, api_key_input],
         outputs=[text_output, file_output, terms_display]
     )
 
@@ -443,7 +457,7 @@ HEAD_TAGS = """
 
 if __name__ == "__main__":
     is_hf = os.environ.get("SPACE_ID") is not None
-    is_cloud = is_hf or os.environ.get("RENDER") is not None or "PORT" in os.environ
+    is_cloud = is_hf or os.environ.get("RENDER") is not None
     port = int(os.environ.get("PORT", 7860))
     _, local_url, share_url = demo.launch(
         server_name="0.0.0.0",
