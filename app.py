@@ -11,23 +11,31 @@ from medical_lexicon import extract_recognized_medical_terms
 
 # ─── AUTO-PATCH GRADIO PREVIEW BANNER (Render & Cloud Support) ───────────────
 try:
+    import re
     _gradio_dir = Path(gr.__file__).parent / "templates" / "frontend"
+    _img_url = "https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?w=1200&auto=format&fit=crop&q=80"
     for _tpl in ["index.html", "share.html"]:
         _tpl_path = _gradio_dir / _tpl
         if _tpl_path.exists():
             _c = _tpl_path.read_text(encoding="utf-8")
+            # Replace Gradio 6 Groot header image
+            _c = _c.replace(
+                "https://raw.githubusercontent.com/gradio-app/gradio/main/js/_website/src/lib/assets/img/header-image.jpg",
+                _img_url
+            )
+            # Replace legacy meta-image.png
             _c = _c.replace(
                 "https://gradio.app/assets/img/meta-image.png",
-                "https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?w=1200&auto=format&fit=crop&q=80"
+                _img_url
             )
-            _c = _c.replace(
-                "Click to try out the app!",
-                "Səs yazısının rəsmi tibbi mətnə çevrilməsi"
-            )
-            _c = _c.replace(
-                "<title>Gradio</title>",
-                "<title>Tibbi Səs-Mətn</title>"
-            )
+            # Comprehensive regex replacement for any default header image
+            _c = re.sub(r"https://raw\.githubusercontent\.com/gradio-app/gradio/[^\"'>\s]+header-image\.jpg", _img_url, _c)
+            _c = re.sub(r"https://gradio\.app/assets/img/[^\"'>\s]+", _img_url, _c)
+            # Replace default descriptions and titles
+            _c = _c.replace("Click to try out the app!", "Səs yazısının rəsmi tibbi mətnə çevrilməsi")
+            _c = _c.replace('<meta property="og:title" content="Gradio" />', '<meta property="og:title" content="Tibbi Səs-Mətn" />')
+            _c = _c.replace('<meta name="twitter:title" content="Gradio" />', '<meta name="twitter:title" content="Tibbi Səs-Mətn" />')
+            _c = _c.replace('<title>Gradio</title>', '<title>Tibbi Səs-Mətn</title>')
             _tpl_path.write_text(_c, encoding="utf-8")
 except Exception as _e:
     print(f"[Preview Patch] Note: {_e}", flush=True)
