@@ -416,8 +416,6 @@ with gr.Blocks(title="Tibbi Səs-Mətn") as demo:
                 choices=[
                     ("🩺 Gemma 4 (12B) — Rəsmi Tibbi Protokol & Epikriz", "gemma"),
                     ("🗣️ Gemma 4 (12B) — Sərbəst Danışıq & Nitq", "gemma_general"),
-                    ("⚡ Qwen 2.5 (3B) — Ultra Sürətli", "qwen"),
-                    ("🎙️ Yalnız Whisper — LLM-siz Xam Mətn", "none"),
                 ],
                 value="gemma",
                 label="🤖 Süni Zəka Redaktə Rejimi",
