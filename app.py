@@ -43,6 +43,13 @@ except Exception as _e:
 SAMPLE_AUDIO_PATH = str(config.SAMPLES_DIR / "konsilium_numune.mp3")
 
 
+LATEST_RESULT = {
+    "text": "",
+    "file": None,
+    "terms": "",
+}
+
+
 def process_audio(audio_path: str, model_choice: str = "gemma"):
     """Processes audio 100% locally via Whisper + Ollama (Gemma 4 / Qwen 2.5)."""
     if not audio_path:
@@ -76,7 +83,30 @@ def process_audio(audio_path: str, model_choice: str = "gemma"):
     else:
         terms_md = ""
 
+    LATEST_RESULT["text"] = final_text
+    LATEST_RESULT["file"] = output_file_path
+    LATEST_RESULT["terms"] = terms_md
+
     return final_text, output_file_path, terms_md
+
+
+def restore_last_result():
+    """Restores the most recent transcription result if phone was locked or disconnected."""
+    if LATEST_RESULT["text"]:
+        return LATEST_RESULT["text"], LATEST_RESULT["file"], LATEST_RESULT["terms"]
+
+    out_files = sorted(config.OUTPUT_DIR.glob("tibbi_qeyd_*.txt"), key=os.path.getmtime, reverse=True)
+    if out_files:
+        latest_file = str(out_files[0])
+        try:
+            content = Path(latest_file).read_text(encoding="utf-8")
+            text_part = content
+            if "TRANSKRİPSİYA MƏTNİ:" in content:
+                text_part = content.split("TRANSKRİPSİYA MƏTNİ:")[1].split("=====================================================")[0].strip()
+            return text_part, latest_file, "<div class='terms-container'><div class='terms-header'>✅ Serverdən Bərpa Edildi</div></div>"
+        except Exception:
+            pass
+    return "⚠️ Hələ heç bir nəticə qeydə alınmayıb.", None, ""
 
 
 CUSTOM_CSS = """
@@ -231,6 +261,43 @@ html, body {
     box-shadow: 0 8px 24px rgba(2, 132, 199, 0.35) !important;
 }
 
+.secondary-btn {
+    background: #f1f5f9 !important;
+    color: #334155 !important;
+    border: 1px solid #cbd5e1 !important;
+    border-radius: 12px !important;
+    padding: 14px 16px !important;
+    font-weight: 600 !important;
+    font-size: 15px !important;
+    margin-top: 10px !important;
+    transition: all 0.2s ease !important;
+}
+.dark .secondary-btn {
+    background: #1e293b !important;
+    color: #f1f5f9 !important;
+    border-color: #334155 !important;
+}
+.secondary-btn:hover {
+    background: #e2e8f0 !important;
+}
+.dark .secondary-btn:hover {
+    background: #334155 !important;
+}
+
+.wakelock-banner {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    background: rgba(16, 185, 129, 0.08);
+    border: 1px solid rgba(16, 185, 129, 0.25);
+    border-radius: 10px;
+    margin-top: 10px;
+    font-size: 12px;
+    color: var(--body-text-color-subdued, #64748b);
+    line-height: 1.4;
+}
+
 /* ─── WaveSurfer & Audio Anti-Jitter ───────────────────────────────────────── */
 audio, 
 .audio-container, 
@@ -355,12 +422,28 @@ with gr.Blocks(title="Tibbi Səs-Mətn") as demo:
                 label="🤖 Yerli (Lokal) Süni Zəka Modeli",
             )
 
-            transcribe_btn = gr.Button(
-                "🚀 Mətnə Çevir",
-                variant="primary",
-                size="lg",
-                elem_classes=["premium-btn"]
-            )
+            with gr.Row():
+                transcribe_btn = gr.Button(
+                    "🚀 Mətnə Çevir",
+                    variant="primary",
+                    size="lg",
+                    scale=3,
+                    elem_classes=["premium-btn"]
+                )
+                restore_btn = gr.Button(
+                    "🔄 Son Nəticəni Bərpa Et",
+                    variant="secondary",
+                    size="lg",
+                    scale=2,
+                    elem_classes=["secondary-btn"]
+                )
+
+            gr.HTML("""
+            <div class="wakelock-banner">
+                <span style="font-size: 16px;">📱</span>
+                <span><b>Mobil Ekran Qoruyucusu Aktivdir:</b> Səs emalı zamanı telefon ekranının sönməsinin və əlaqənin kəsilməsinin qarşısı avtomatik alınır. Ekran sönsə belə, "Son Nəticəni Bərpa Et" düyməsi ilə tamamlanmış mətni dərhal geri qaytara bilərsiniz.</span>
+            </div>
+            """)
 
         with gr.Column(scale=1):
             text_output = gr.Textbox(
@@ -390,6 +473,12 @@ with gr.Blocks(title="Tibbi Səs-Mətn") as demo:
         outputs=[text_output, file_output, terms_display]
     )
 
+    restore_btn.click(
+        fn=restore_last_result,
+        inputs=[],
+        outputs=[text_output, file_output, terms_display]
+    )
+
 HEAD_TAGS = """
 <meta property="og:title" content="Tibbi Səs-Mətn" />
 <meta property="og:description" content="Səs yazısının rəsmi tibbi mətnə çevrilməsi" />
@@ -398,12 +487,91 @@ HEAD_TAGS = """
 <meta name="twitter:title" content="Tibbi Səs-Mətn" />
 <meta name="twitter:description" content="Səs yazısının rəsmi tibbi mətnə çevrilməsi" />
 <meta name="twitter:image" content="https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?w=1200&auto=format&fit=crop&q=80" />
+<script>
+// ─── Mobile Screen WakeLock & Background Resilience ─────────────────────────
+let wakeLock = null;
+let keepAliveAudio = null;
+
+function getSilentAudio() {
+    if (!keepAliveAudio) {
+        keepAliveAudio = new Audio("data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA");
+        keepAliveAudio.loop = true;
+        keepAliveAudio.volume = 0.01;
+    }
+    return keepAliveAudio;
+}
+
+async function requestScreenLock() {
+    try {
+        if ('wakeLock' in navigator && !wakeLock) {
+            wakeLock = await navigator.wakeLock.request('screen');
+            console.log('[Mobile] Screen WakeLock ugurla aktiv edildi.');
+            wakeLock.addEventListener('release', () => {
+                console.log('[Mobile] Screen WakeLock dayandirildi.');
+                wakeLock = null;
+            });
+        }
+    } catch (err) {
+        console.warn('[Mobile] WakeLock qeyri-aktiv:', err);
+    }
+    try {
+        const audio = getSilentAudio();
+        audio.play().then(() => {
+            console.log('[Mobile] Fon aktivliyi ucun sessiz audio ise salindi.');
+        }).catch(e => console.log('[Mobile] Audio defer:', e));
+    } catch (e) {
+        console.warn(e);
+    }
+}
+
+function releaseScreenLock() {
+    if (wakeLock) {
+        try { wakeLock.release(); } catch(e) {}
+        wakeLock = null;
+    }
+    if (keepAliveAudio) {
+        try { keepAliveAudio.pause(); } catch(e) {}
+    }
+    console.log('[Mobile] WakeLock azad edildi.');
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    function attachListeners() {
+        const buttons = document.querySelectorAll('button');
+        buttons.forEach(btn => {
+            if (btn.innerText && (btn.innerText.includes('Mətnə Çevir') || btn.innerText.includes('Transcribe'))) {
+                if (!btn.dataset.wakelockAttached) {
+                    btn.dataset.wakelockAttached = 'true';
+                    btn.addEventListener('click', () => {
+                        requestScreenLock();
+                        setTimeout(releaseScreenLock, 600000);
+                    });
+                }
+            }
+        });
+    }
+
+    attachListeners();
+    setInterval(attachListeners, 2000);
+
+    document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'visible') {
+            console.log('[Mobile] Ekran aktivlesdi.');
+            const loadingIndicator = document.querySelector('.loading, .progress-bar, [aria-busy="true"]');
+            if (loadingIndicator) {
+                requestScreenLock();
+            }
+        }
+    });
+});
+</script>
 """
 
 if __name__ == "__main__":
     is_hf = os.environ.get("SPACE_ID") is not None
     is_cloud = is_hf or os.environ.get("RENDER") is not None
     port = int(os.environ.get("PORT", 7860))
+    demo.queue(default_concurrency_limit=3)
     _, local_url, share_url = demo.launch(
         server_name="0.0.0.0",
         server_port=port,
