@@ -1,4 +1,4 @@
-"""Tibbi Səs-Mətn Tətbiqi (Gemini 3.6 Flash)."""
+"""Tibbi Səs-Mətn Tətbiqi (100% Yerli / Oflayn)."""
 
 import os
 import datetime
@@ -6,7 +6,7 @@ from pathlib import Path
 import gradio as gr
 
 import config
-from gemini_corrector import gemini_transcribe_audio_direct
+from transcriber import transcribe_audio_file
 from medical_lexicon import extract_recognized_medical_terms
 
 # ─── AUTO-PATCH GRADIO PREVIEW BANNER (Render & Cloud Support) ───────────────
@@ -43,26 +43,24 @@ except Exception as _e:
 SAMPLE_AUDIO_PATH = str(config.SAMPLES_DIR / "konsilium_numune.mp3")
 
 
-def process_audio(audio_path: str, model_choice: str = "gemini-3.6-flash", api_key: str = ""):
-    """Processes audio directly via Gemini 3.6 Flash / Gemma 4 and returns transcript and file."""
+def process_audio(audio_path: str, model_choice: str = "gemma"):
+    """Processes audio 100% locally via Whisper + Ollama (Gemma 4 / Qwen 2.5)."""
     if not audio_path:
         return "⚠️ Zəhmət olmasa səs faylı yükləyin və ya mikrofondan danışın.", None, ""
 
     if not os.path.exists(audio_path):
         return f"❌ Audio faylı tapılmadı: {audio_path}", None, ""
 
-    key_to_use = api_key.strip() if api_key else None
-    result_text, err = gemini_transcribe_audio_direct(
-        audio_path,
-        api_key=key_to_use,
-        ai_engine=model_choice
-    )
-
-    if err:
-        return f"❌ Gemini API Xətası:\n{err}", None, ""
+    try:
+        final_text, stage1_text, output_file_path, detected_terms, stage_info = transcribe_audio_file(
+            audio_path=audio_path,
+            model_name="small",
+            llm_mode=model_choice
+        )
+    except Exception as exc:
+        return f"❌ Xəta baş verdi:\n{str(exc)}", None, ""
 
     # Detected terms
-    detected_terms = extract_recognized_medical_terms(result_text)
     if detected_terms:
         terms_md = "<div class='terms-container'>"
         terms_md += "<div class='terms-header'>🩺 AŞKARLANAN TİBBİ TERMİNLƏR</div>"
@@ -78,43 +76,7 @@ def process_audio(audio_path: str, model_choice: str = "gemini-3.6-flash", api_k
     else:
         terms_md = ""
 
-    # Write protocol file
-    timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
-    output_filename = f"tibbi_qeyd_{timestamp}.txt"
-    output_file_path = str(config.OUTPUT_DIR / output_filename)
-
-    with open(output_file_path, "w", encoding="utf-8") as f:
-        f.write("=====================================================\n")
-        f.write("TİBBİ SƏS-MƏTN PROTOKOLU\n")
-        f.write(f"Tarix / Saat: {datetime.datetime.now().strftime('%d.%m.%Y %H:%M')}\n")
-        f.write("=====================================================\n\n")
-        f.write("TRANSKRİPSİYA MƏTNİ:\n")
-        f.write(result_text + "\n\n")
-        if detected_terms:
-            f.write("AŞKARLANAN TİBBİ TERMİNLƏR:\n")
-            for item in detected_terms:
-                f.write(f" - [{item['domain']}] : {item['term']}\n")
-        f.write("\n=====================================================\n")
-
-    return result_text, output_file_path, terms_md
-
-
-def save_api_key(key: str):
-    """Saves user API key to .env file."""
-    key = key.strip()
-    if not key:
-        return "⚠️ Zəhmət olmasa API açarını daxil edin."
-    if len(key) < 25 or key.endswith("..."):
-        return "❌ Açar natamamdır. Google AI Studio-dan 39 simvollu açarı daxil edin."
-
-    env_path = config.BASE_DIR / ".env"
-    try:
-        with open(env_path, "w", encoding="utf-8") as f:
-            f.write(f"GEMINI_API_KEY={key}\n")
-        os.environ["GEMINI_API_KEY"] = key
-        return "✅ API açarı uğurla yadda saxlanıldı!"
-    except Exception as exc:
-        return f"❌ Xəta baş verdi: {str(exc)}"
+    return final_text, output_file_path, terms_md
 
 
 CUSTOM_CSS = """
@@ -364,10 +326,10 @@ with gr.Blocks(title="Tibbi Səs-Mətn") as demo:
     <div class="header-premium">
         <div class="status-pill">
             <span class="pulse-indicator"></span>
-            <span class="status-pill-text" style="color: #f8fafc !important; font-weight: 600;">Süni Zəka Mühərriki Aktivdir</span>
+            <span class="status-pill-text" style="color: #f8fafc !important; font-weight: 600;">🟢 100% Yerli & Oflayn AI Aktivdir</span>
         </div>
         <h1 class="header-title">🩺 Tibbi Səs-Mətn</h1>
-        <p class="header-desc">Səs yazısının yüksək dəqiqliklə rəsmi tibbi mətnə çevrilməsi</p>
+        <p class="header-desc">Səs yazısının yerli kompüterdə tam məxfi rəsmi tibbi mətnə çevrilməsi</p>
     </div>
     """)
 
@@ -385,12 +347,12 @@ with gr.Blocks(title="Tibbi Səs-Mətn") as demo:
 
             model_selector = gr.Radio(
                 choices=[
-                    ("⚡ Gemini 3.6 Flash (Sürətli)", "gemini-3.6-flash"),
-                    ("🧠 Gemma 4 (26B MoE)", "gemma-4-26b-a4b-it"),
-                    ("🔬 Gemma 4 (31B Dense)", "gemma-4-31b-it"),
+                    ("🧠 Gemma 4 (12B) — Dərin Tibbi Redaktə", "gemma"),
+                    ("⚡ Qwen 2.5 (3B) — Ultra Sürətli", "qwen"),
+                    ("🎙️ Yalnız Whisper — LLM-siz Xam Mətn", "none"),
                 ],
-                value="gemini-3.6-flash",
-                label="🤖 Süni Zəka Modeli",
+                value="gemma",
+                label="🤖 Yerli (Lokal) Süni Zəka Modeli",
             )
 
             transcribe_btn = gr.Button(
@@ -399,17 +361,6 @@ with gr.Blocks(title="Tibbi Səs-Mətn") as demo:
                 size="lg",
                 elem_classes=["premium-btn"]
             )
-
-            with gr.Accordion("🔑 API Açarı", open=False):
-                with gr.Row():
-                    api_key_input = gr.Textbox(
-                        placeholder="Gemini API açarını daxil edin...",
-                        type="password",
-                        show_label=False,
-                        scale=3,
-                    )
-                    save_key_btn = gr.Button("💾 Yadda Saxla", variant="secondary", scale=1)
-                key_status_msg = gr.Markdown(value="")
 
         with gr.Column(scale=1):
             text_output = gr.Textbox(
@@ -427,12 +378,6 @@ with gr.Blocks(title="Tibbi Səs-Mətn") as demo:
             terms_display = gr.HTML(value="")
 
     # Event handlers
-    save_key_btn.click(
-        fn=save_api_key,
-        inputs=[api_key_input],
-        outputs=[key_status_msg]
-    )
-
     sample_btn.click(
         fn=lambda: SAMPLE_AUDIO_PATH if os.path.exists(SAMPLE_AUDIO_PATH) else None,
         inputs=[],
@@ -441,7 +386,7 @@ with gr.Blocks(title="Tibbi Səs-Mətn") as demo:
 
     transcribe_btn.click(
         fn=process_audio,
-        inputs=[audio_input, model_selector, api_key_input],
+        inputs=[audio_input, model_selector],
         outputs=[text_output, file_output, terms_display]
     )
 

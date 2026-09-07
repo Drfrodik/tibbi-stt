@@ -35,7 +35,7 @@ for p in KNOWN_FFMPEG_PATHS:
         break
 
 # Default ASR settings
-DEFAULT_MODEL_NAME = "medium"  # Superior accuracy for Azerbaijani medical speech
+DEFAULT_MODEL_NAME = "small"  # Fast, accurate Azerbaijani medical speech on CPU
 TARGET_LANGUAGE = "az"
 TASK = "transcribe"
 DEVICE = "cpu"
@@ -45,7 +45,7 @@ COMPUTE_TYPE = "int8"
 # NOTE: Must be a concise list of medical keywords/specialties, NOT full sentences,
 # to prevent Whisper decoder from looping or echoing prompt tokens.
 MEDICAL_SEED_PROMPT = (
-    "Hospital konsiliumu protokolu. Revmatoloq, kardioloq, neyrocərrah, nevropatoloq, "
+    "Tibbi protokol. Revmatoloq, kardioloq, neyrocərrah, nevropatoloq, "
     "terapevt, cərrah, onkoloq, qastroenteroloq. Anamnez, laborator analizlər, USM, "
     "KT, MRT, rentgen, histologiya, diaqnoz, preoperativ hazırlıq, müalicə planı."
 )

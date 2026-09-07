@@ -10,7 +10,7 @@ Two-stage pipeline:
 import datetime
 import os
 from pathlib import Path
-from typing import Dict, List, Tuple
+from typing import Dict, List, Optional, Tuple
 
 from faster_whisper import WhisperModel
 
@@ -77,18 +77,18 @@ def transcribe_audio_file(
 
         detected_terms = extract_recognized_medical_terms(final_text)
         timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
-        output_filename = f"konsilium_protokolu_{timestamp}.txt"
+        output_filename = f"tibbi_qeyd_{timestamp}.txt"
         output_file_path = str(config.OUTPUT_DIR / output_filename)
         with open(output_file_path, "w", encoding="utf-8") as f:
             f.write("=====================================================\n")
-            f.write("HOSPİTAL TİBBİ KONSİLİUM PROTOKOLU (SƏS-MƏTN)\n")
+            f.write("TİBBİ SƏS-MƏTN PROTOKOLU\n")
             f.write(f"Tarix / Saat: {datetime.datetime.now().strftime('%d.%m.%Y %H:%M')}\n")
-            f.write(f"Pipeline: {stage_info}\n")
+            f.write(f"Mühərrik: {stage_info}\n")
             f.write("=====================================================\n\n")
             f.write("TRANSKRİPSİYA MƏTNİ:\n")
             f.write(final_text + "\n\n")
             if detected_terms:
-                f.write("AŞKARLANAN TİBBİ TERMİNLƏR VƏ SAHƏLƏR:\n")
+                f.write("AŞKARLANAN TİBBİ TERMİNLƏR:\n")
                 for item in detected_terms:
                     f.write(f" - [{item['domain']}] : {item['term']}\n")
             f.write("\n=====================================================\n")
@@ -120,9 +120,8 @@ def transcribe_audio_file(
     final_text = stage1_text
     stage_info = f"Whisper ({model_name}) | Yalnız ASR"
 
-    from gemini_corrector import gemini_correct_transcript
-
     if llm_mode == "gemini_hybrid":
+        from gemini_corrector import gemini_correct_transcript
         print("[Gemini Hybrid] Whisper + Lokal PII Anonimləşdirmə + Gemini 3.6 Flash...")
         gem_hybrid, err = gemini_correct_transcript(stage1_text, api_key=gemini_api_key, apply_anonymization=True)
         if gem_hybrid:
@@ -152,22 +151,19 @@ def transcribe_audio_file(
 
     # ── Write protocol file ──────────────────────────────────────────────────
     timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
-    output_filename = f"konsilium_protokolu_{timestamp}.txt"
+    output_filename = f"tibbi_qeyd_{timestamp}.txt"
     output_file_path = str(config.OUTPUT_DIR / output_filename)
 
     with open(output_file_path, "w", encoding="utf-8") as f:
         f.write("=====================================================\n")
-        f.write("HOSPİTAL TİBBİ KONSİLİUM PROTOKOLU (SƏS-MƏTN)\n")
+        f.write("TİBBİ SƏS-MƏTN PROTOKOLU\n")
         f.write(f"Tarix / Saat: {datetime.datetime.now().strftime('%d.%m.%Y %H:%M')}\n")
-        f.write(f"Pipeline: {stage_info}\n")
+        f.write(f"Mühərrik: {stage_info}\n")
         f.write("=====================================================\n\n")
         f.write("TRANSKRİPSİYA MƏTNİ:\n")
         f.write(final_text + "\n\n")
-        if stage1_text != final_text:
-            f.write("─── Whisper xam mətni (müqayisə üçün) ───\n")
-            f.write(stage1_text + "\n\n")
         if detected_terms:
-            f.write("AŞKARLANAN TİBBİ TERMİNLƏR VƏ SAHƏLƏR:\n")
+            f.write("AŞKARLANAN TİBBİ TERMİNLƏR:\n")
             for item in detected_terms:
                 f.write(f" - [{item['domain']}] : {item['term']}\n")
         f.write("\n=====================================================\n")

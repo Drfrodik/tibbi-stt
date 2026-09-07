@@ -32,7 +32,6 @@ SYSTEM_PROMPT_GEMMA = (
     "- 'çək edilib' -> 'yoxlanılıb'\n"
     "- 'rentmetoloq/renmatoloq' -> 'revmatoloq'\n"
     "- 'neorocarah/niyiracaraq' -> 'neyrocərrah'\n"
-    "- 'qanşı kimi/konsiqimet' -> 'konsiliuma'\n"
     "- 'sonarkı müənnələr' -> 'sonrakı müayinələr'\n"
     "- 'müəyyənə-muhaca planı' -> 'müayinə-müalicə planı'"
 )
@@ -105,7 +104,7 @@ def llm_correct_transcript(
                     "model": MODEL_QWEN,
                     "messages": [
                         {"role": "system", "content": SYSTEM_PROMPT_QWEN},
-                        {"role": "user", "content": f"Xam transkripsiya:\n\"{raw_text}\"\n\nDüzəldilmiş rəsmi konsilium protokolu:"}
+                        {"role": "user", "content": f"Xam transkripsiya:\n\"{raw_text}\"\n\nDüzəldilmiş rəsmi tibbi protokol:"}
                     ],
                     "stream": False,
                     "options": {"temperature": 0.1, "num_predict": 400}
