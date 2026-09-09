@@ -40,6 +40,20 @@ try:
 except Exception as _e:
     print(f"[Preview Patch] Note: {_e}", flush=True)
 
+# ─── AUTO-PATCH GRADIO AUDIO COMPONENT FOR WHATSAPP (.mp4 / .m4a) ────────────
+try:
+    _target_str = "audio/vnd.rn-realaudio,audio/x-ms-wma,audio/x-aiff,audio/amr,audio/*"
+    _expanded_str = "audio/vnd.rn-realaudio,audio/x-ms-wma,audio/x-aiff,audio/amr,audio/*,video/mp4,video/*,.mp4,.m4a"
+    for _js_file in Path(gr.__file__).parent.glob("templates/**/*.js"):
+        try:
+            _content = _js_file.read_text(encoding="utf-8")
+            if _target_str in _content:
+                _js_file.write_text(_content.replace(_target_str, _expanded_str), encoding="utf-8")
+        except Exception:
+            pass
+except Exception as _e:
+    print(f"[Audio Patch] Note: {_e}", flush=True)
+
 SAMPLE_AUDIO_PATH = str(config.SAMPLES_DIR / "konsilium_numune.mp3")
 
 
@@ -50,17 +64,18 @@ LATEST_RESULT = {
 }
 
 
-def process_audio(audio_path: str, model_choice: str = "gemma"):
-    """Processes audio 100% locally via Whisper + Ollama (Gemma 4 / Qwen 2.5)."""
-    if not audio_path:
+def process_audio(audio_path: str = None, file_path: str = None, model_choice: str = "gemma"):
+    """Processes audio or video (WhatsApp .mp4, mp3, m4a, wav, etc.) 100% locally via Whisper + Ollama."""
+    chosen_path = file_path if file_path else audio_path
+    if not chosen_path:
         return "⚠️ Zəhmət olmasa səs faylı yükləyin və ya mikrofondan danışın.", None, ""
 
-    if not os.path.exists(audio_path):
-        return f"❌ Audio faylı tapılmadı: {audio_path}", None, ""
+    if not os.path.exists(chosen_path):
+        return f"❌ Audio faylı tapılmadı: {chosen_path}", None, ""
 
     try:
         final_text, stage1_text, output_file_path, detected_terms, stage_info = transcribe_audio_file(
-            audio_path=audio_path,
+            audio_path=chosen_path,
             model_name="small",
             llm_mode=model_choice
         )
@@ -514,12 +529,20 @@ with gr.Blocks(title="Tibbi Səs-Mətn") as demo:
 
     with gr.Row():
         with gr.Column(scale=1):
-            audio_input = gr.Audio(
-                sources=["upload", "microphone"],
-                type="filepath",
-                label="Səs Yazısı",
-                editable=False,
-            )
+            with gr.Tabs():
+                with gr.Tab("🎙️ Mikrofon / Səs"):
+                    audio_input = gr.Audio(
+                        sources=["upload", "microphone"],
+                        type="filepath",
+                        label="Səs Yazısı",
+                        editable=False,
+                    )
+                with gr.Tab("📁 WhatsApp (.mp4) və Fayllar"):
+                    file_input = gr.File(
+                        label="WhatsApp Səs Qeydi (.mp4) və ya İstənilən Audio/Video",
+                        file_types=["audio", "video", ".mp4", ".m4a", ".ogg", ".opus", ".wav", ".mp3", ".aac"],
+                        type="filepath",
+                    )
 
             with gr.Row():
                 sample_btn = gr.Button("🎧 Nümunə Səs", variant="secondary", size="sm")
@@ -573,14 +596,14 @@ with gr.Blocks(title="Tibbi Səs-Mətn") as demo:
 
     # Event handlers
     sample_btn.click(
-        fn=lambda: SAMPLE_AUDIO_PATH if os.path.exists(SAMPLE_AUDIO_PATH) else None,
+        fn=lambda: (SAMPLE_AUDIO_PATH if os.path.exists(SAMPLE_AUDIO_PATH) else None, None),
         inputs=[],
-        outputs=[audio_input]
+        outputs=[audio_input, file_input]
     )
 
     transcribe_btn.click(
         fn=process_audio,
-        inputs=[audio_input, model_selector],
+        inputs=[audio_input, file_input, model_selector],
         outputs=[text_output, file_output, terms_display]
     )
 
@@ -665,8 +688,20 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    function patchFileInputs() {
+        const inputs = document.querySelectorAll('input[type="file"]');
+        inputs.forEach(input => {
+            const cur = input.getAttribute('accept') || '';
+            if (!cur.includes('.mp4')) {
+                input.setAttribute('accept', 'audio/*,video/*,.mp4,.m4a,.ogg,.opus,.aac,.wav,.mp3,.webm');
+            }
+        });
+    }
+
     attachListeners();
     setInterval(attachListeners, 2000);
+    patchFileInputs();
+    setInterval(patchFileInputs, 1500);
 
     document.addEventListener('visibilitychange', () => {
         if (document.visibilityState === 'visible') {
@@ -675,6 +710,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (loadingIndicator) {
                 requestScreenLock();
             }
+            patchFileInputs();
         }
     });
 });
