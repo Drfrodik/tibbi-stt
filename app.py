@@ -64,9 +64,23 @@ LATEST_RESULT = {
 }
 
 
-def process_audio(audio_path: str = None, file_path: str = None, model_choice: str = "gemma"):
+def process_audio(file_path=None, audio_path=None, model_choice: str = "gemma"):
     """Processes audio or video (WhatsApp .mp4, mp3, m4a, wav, etc.) 100% locally via Whisper + Ollama."""
-    chosen_path = file_path if file_path else audio_path
+    raw_chosen = file_path if file_path else audio_path
+    chosen_path = None
+    if raw_chosen:
+        if isinstance(raw_chosen, str):
+            chosen_path = raw_chosen
+        elif hasattr(raw_chosen, "name") and raw_chosen.name:
+            chosen_path = str(raw_chosen.name)
+        elif hasattr(raw_chosen, "path") and raw_chosen.path:
+            chosen_path = str(raw_chosen.path)
+        elif isinstance(raw_chosen, dict) and "path" in raw_chosen:
+            chosen_path = str(raw_chosen["path"])
+        elif isinstance(raw_chosen, list) and len(raw_chosen) > 0:
+            first = raw_chosen[0]
+            chosen_path = str(getattr(first, "name", getattr(first, "path", first)))
+
     if not chosen_path:
         return "⚠️ Zəhmət olmasa səs faylı yükləyin və ya mikrofondan danışın.", None, ""
 
@@ -530,18 +544,17 @@ with gr.Blocks(title="Tibbi Səs-Mətn") as demo:
     with gr.Row():
         with gr.Column(scale=1):
             with gr.Tabs():
-                with gr.Tab("🎙️ Mikrofon / Səs"):
-                    audio_input = gr.Audio(
-                        sources=["upload", "microphone"],
-                        type="filepath",
-                        label="Səs Yazısı",
-                        editable=False,
-                    )
-                with gr.Tab("📁 WhatsApp (.mp4) və Fayllar"):
+                with gr.Tab("📁 WhatsApp & Səs Faylı Yüklə (.mp4, .m4a, .mp3, .wav)"):
                     file_input = gr.File(
                         label="WhatsApp Səs Qeydi (.mp4) və ya İstənilən Audio/Video",
                         file_types=["audio", "video", ".mp4", ".m4a", ".ogg", ".opus", ".wav", ".mp3", ".aac"],
                         type="filepath",
+                    )
+                with gr.Tab("🎙️ Canlı Mikrofonla Danış"):
+                    audio_input = gr.Audio(
+                        sources=["microphone"],
+                        type="filepath",
+                        label="Canlı Diktə",
                     )
 
             with gr.Row():
@@ -575,7 +588,7 @@ with gr.Blocks(title="Tibbi Səs-Mətn") as demo:
             gr.HTML("""
             <div class="wakelock-banner">
                 <span class="pulse-emerald"></span>
-                <span>Mobil ekran qoruyucusu aktivdir</span>
+                <span>WhatsApp (.mp4 / .m4a) və bütün audio formatlar birbaşa dəstəklənir</span>
             </div>
             """)
 
@@ -598,12 +611,12 @@ with gr.Blocks(title="Tibbi Səs-Mətn") as demo:
     sample_btn.click(
         fn=lambda: (SAMPLE_AUDIO_PATH if os.path.exists(SAMPLE_AUDIO_PATH) else None, None),
         inputs=[],
-        outputs=[audio_input, file_input]
+        outputs=[file_input, audio_input]
     )
 
     transcribe_btn.click(
         fn=process_audio,
-        inputs=[audio_input, file_input, model_selector],
+        inputs=[file_input, audio_input, model_selector],
         outputs=[text_output, file_output, terms_display]
     )
 
