@@ -45,7 +45,12 @@ COMPUTE_TYPE = "int8"
 # NOTE: Must be a concise list of medical keywords/specialties, NOT full sentences,
 # to prevent Whisper decoder from looping or echoing prompt tokens.
 MEDICAL_SEED_PROMPT = (
-    "Tibbi protokol. Revmatoloq, kardioloq, neyrocərrah, nevropatoloq, "
-    "terapevt, cərrah, onkoloq, qastroenteroloq. Anamnez, laborator analizlər, USM, "
-    "KT, MRT, rentgen, histologiya, diaqnoz, preoperativ hazırlıq, müalicə planı."
+    "Tibbi konsilium. Plevral abses, hidrotoraks, piopnevmotoraks, drenaj, torasentez. "
+    "Mexaniki ventilyasiya, reanimasiya, intensiv terapiya, hemodinamik instabilitet. "
+    "Sepsis, infeksion-toksik proses, leykositoz, limfopeniya, qan qazları, laktat. "
+    "Kardio-respirator çatışmazlıq, kardiopulsor, taxikardiya, bradikardiya. "
+    "Antibiotik, albumin, plazma, infuziya, liksyin, furosemid, heparin. "
+    "Anamnez, diaqnoz, müayinə, müalicə, stasionar, epikriz, reviziya əməliyyatı. "
+    "Revmatoloq, kardioloq, neyrocərrah, torakik cərrah, reanimatioloq, terapevt. "
+    "KT, MRT, rentgen, USM, EKQ, laborator analizlər, qan təzyiqi, oksigen satürasiyası."
 )

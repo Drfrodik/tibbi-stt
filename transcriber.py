@@ -112,7 +112,11 @@ def transcribe_audio_file(
         task=config.TASK,
         initial_prompt=config.MEDICAL_SEED_PROMPT,
         vad_filter=True,
-        vad_parameters=dict(min_silence_duration_ms=400),
+        vad_parameters=dict(
+            min_silence_duration_ms=800,   # increased: do not cut short pauses
+            speech_pad_ms=400,              # pad audio before/after speech — captures beginning
+            threshold=0.35,                 # lower threshold: more sensitive, misses less
+        ),
         repetition_penalty=1.2,
         no_repeat_ngram_size=3,
         condition_on_previous_text=False,
